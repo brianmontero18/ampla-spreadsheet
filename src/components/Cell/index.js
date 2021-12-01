@@ -22,46 +22,12 @@ export default function Cell({ cell: { cellId, columnId, defaultValue } }) {
 		updateCellSelection(cellId, localValue);
 	};
 
-	const handleOnBlur = React.useCallback(() => {
+	const handleOnBlur = () => {
 		document.getElementById(columnId).classList.remove('header-selected');
 		setView('ref');
-	}, [columnId]);
+	};
 
-	return (
-		<td onFocus={handleOnFocus} onBlur={handleOnBlur}>
-			{view === 'local' ? (
-				<LocalValueInput
-					cellId={cellId}
-					defaultValue={localValue}
-					unsubscribe={unsubscribe}
-					handleOnBlur={handleOnBlur}
-					setLocalValue={setLocalValue}
-					setRefValue={setRefValue}
-				/>
-			) : view === 'ref' && refValue === CIRCULAR_REFERENCE_ERROR ? (
-				<Tooltip label={ERROR_MESSAGE}>
-					<RefValueInput
-						className="error"
-						setView={setView}
-						value={refValue}
-					/>
-				</Tooltip>
-			) : view === 'ref' ? (
-				<RefValueInput setView={setView} value={refValue} />
-			) : null}
-		</td>
-	);
-}
-
-function LocalValueInput({
-	cellId,
-	defaultValue,
-	unsubscribe,
-	handleOnBlur,
-	setLocalValue,
-	setRefValue,
-}) {
-	function submitValue(value) {
+	const submitValue = (value) => {
 		setLocalValue(value);
 		updateCellValue(cellId, value);
 		handleOnBlur();
@@ -72,42 +38,49 @@ function LocalValueInput({
 			unsubscribe.current = undefined;
 			setRefValue(value);
 		}
-	}
+	};
 
-	return (
+	const renderRefValueInput = (className) => (
 		<input
-			key="putos-todos"
-			id="local-value-input"
-			autoFocus
-			defaultValue={defaultValue}
-			onKeyDown={(e) => {
-				if (e.key === 'Enter' || e.key === 'Escape') {
-					submitValue(e.target.value);
-				}
-			}}
-			onBlur={(e) => submitValue(e.target.value)}
-		/>
-	);
-}
-
-const RefValueInput = React.forwardRef(({ setView, value, ...rest }, ref) => {
-	return (
-		<input
-			key="putos"
-			ref={ref}
-			{...rest}
+			key="ref-value-input"
+			className={className}
 			style={{ cursor: 'pointer' }}
 			readOnly
 			onDoubleClick={() => setView('local')}
 			onKeyDown={(e) => {
 				if (/^[\w=]{1}$/.test(e.key)) setView('local');
 			}}
-			value={value}
+			value={refValue}
 		/>
 	);
-});
 
-function subscribe(value, unsubscribe, cellId, setRefValue) {
+	return (
+		<td onFocus={handleOnFocus} onBlur={handleOnBlur}>
+			{view === 'local' ? (
+				<input
+					id="local-value-input"
+					key="local-value-input"
+					autoFocus
+					defaultValue={localValue}
+					onKeyDown={(e) => {
+						if (e.key === 'Enter' || e.key === 'Escape') {
+							submitValue(e.target.value);
+						}
+					}}
+					onBlur={(e) => submitValue(e.target.value)}
+				/>
+			) : view === 'ref' && refValue === CIRCULAR_REFERENCE_ERROR ? (
+				<Tooltip label={ERROR_MESSAGE}>
+					{renderRefValueInput('error')}
+				</Tooltip>
+			) : view === 'ref' ? (
+				renderRefValueInput()
+			) : null}
+		</td>
+	);
+}
+
+function subscribe(value = '', unsubscribe, cellId, setRefValue) {
 	if (isValidCellId(value)) {
 		unsubscribe.current = dataStore.subscribe(
 			({ data }) => getCellValue(data, cellId),
