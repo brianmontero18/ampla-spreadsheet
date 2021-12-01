@@ -1,25 +1,33 @@
-import logo from './logo.svg';
+import { columns, rows } from './store';
+import { Header, Cell } from './components';
 import './App.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+export default function App() {
+	return (
+		<>
+			<Header />
+			<table>
+				<thead>
+					<tr>
+						<th></th>
+						{columns.map((column) => (
+							<th id={column} key={column}>
+								{column}
+							</th>
+						))}
+					</tr>
+				</thead>
+				<tbody>
+					{rows.map(({ rowId, cells }) => (
+						<tr key={`row_${rowId}`}>
+							<td key={rowId}>{rowId}</td>
+							{cells.map((cell) => (
+								<Cell key={cell.ref} cell={cell} />
+							))}
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</>
+	);
 }
-
-export default App;
