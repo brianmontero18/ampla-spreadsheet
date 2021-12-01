@@ -4,7 +4,7 @@ import { subscribeWithSelector } from 'zustand/middleware';
 const storageKey = 'spreadsheet-data';
 export const initialData = JSON.parse(localStorage.getItem(storageKey)) || {};
 
-export const store = create(
+export const dataStore = create(
 	subscribeWithSelector((set) => ({
 		data: initialData,
 		updateCellValue: (ref, value) =>
@@ -24,9 +24,9 @@ export const selectionStore = create(
 );
 
 export function saveLocalStorage() {
-	localStorage.setItem(storageKey, JSON.stringify(store.getState().data));
+	localStorage.setItem(storageKey, JSON.stringify(dataStore.getState().data));
 }
 
-export const updateCellValue = store.getState().updateCellValue;
+export const updateCellValue = dataStore.getState().updateCellValue;
 export const updateCellSelection =
 	selectionStore.getState().updateCellSelection;

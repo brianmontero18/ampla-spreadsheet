@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Tooltip from '@reach/tooltip';
-import { store, updateCellValue, updateCellSelection } from '../../store';
+import { dataStore, updateCellValue, updateCellSelection } from '../../store';
 import './index.css';
 
 const CIRCULAR_REFERENCE_ERROR = '#REF!';
@@ -8,7 +8,6 @@ const ERROR_MESSAGE =
 	'A circular dependency has been detected. Please reference the cell correctly';
 
 export default function Cell({ cell: { cellId, columnId, defaultValue } }) {
-	console.log('dale');
 	const [localValue, setLocalValue] = React.useState(defaultValue || '');
 	const [refValue, setRefValue] = React.useState('');
 	const [view, setView] = React.useState('ref');
@@ -110,11 +109,11 @@ const RefValueInput = React.forwardRef(({ setView, value, ...rest }, ref) => {
 
 function subscribe(value, unsubscribe, cellId, setRefValue) {
 	if (isValidCellId(value)) {
-		unsubscribe.current = store.subscribe(
-			(store) => getCellValue(store.data, cellId),
+		unsubscribe.current = dataStore.subscribe(
+			({ data }) => getCellValue(data, cellId),
 			(newRefValue) => setRefValue(newRefValue)
 		);
-		setRefValue(getCellValue(store.getState().data, cellId));
+		setRefValue(getCellValue(dataStore.getState().data, cellId));
 	} else {
 		setRefValue(value);
 	}
