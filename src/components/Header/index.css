@@ -1,0 +1,41 @@
+.header-container {
+	display: flex;
+	flex-direction: row;
+}
+.header-selected {
+	background-color: #dcfeef;
+}
+.cell-id-selected,
+.cell-value-selected {
+	border: 1px solid #cbd6e2;
+	background-color: white;
+	align-items: center;
+	display: flex;
+	padding-left: 10px;
+}
+.cell-id-selected {
+	width: 30px;
+}
+.cell-value-selected {
+	width: 300px;
+}
+button {
+	display: flex;
+	background-color: #08646a;
+	color: #fff;
+	font-family: 'Noto Sans2';
+	font-weight: 400;
+	border-radius: 8px;
+	align-items: center;
+	border: 2px solid #08646a;
+	height: 30px;
+	padding: 14px;
+	margin-left: 30px;
+	cursor: pointer;
+}
+button:hover {
+	border-color: #f7f88a;
+	background-color: #f7f88a;
+	color: #08646a;
+	box-shadow: 0 2px 10px 3px rgb(1 35 37 / 15%);
+}

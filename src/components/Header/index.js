@@ -1,11 +1,12 @@
 import * as React from 'react';
-import { store, saveLocalStorage } from '../../store';
+import { selectionStore, saveLocalStorage } from '../../store';
+import './index.css';
 
 export default function Header() {
 	const [cellSelected, setCellSelected] = React.useState('');
 
 	React.useEffect(() => {
-		return store.subscribe(
+		return selectionStore.subscribe(
 			(store) => store.selected,
 			(selected) => setCellSelected(selected)
 		);
@@ -14,7 +15,7 @@ export default function Header() {
 	return (
 		<>
 			<div className="header-container">
-				<div className="cell-ref-selected">{cellSelected.ref}</div>
+				<div className="cell-id-selected">{cellSelected.id}</div>
 				<div className="cell-value-selected">{cellSelected.value}</div>
 				<button onClick={saveLocalStorage}>
 					Save into Local Storage

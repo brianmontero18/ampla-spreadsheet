@@ -1,0 +1,21 @@
+@import url('../../../node_modules/@reach/tooltip/styles.css');
+
+input {
+	font-family: 'Merriweather';
+	width: 120px;
+	height: 20px;
+	border: 1px;
+	padding: 5px;
+	outline: none;
+	box-sizing: border-box;
+}
+input:focus {
+	box-shadow: 0 0 0 1px #08646a;
+}
+#local-value-input:focus {
+	border-color: #08646a;
+	border-style: solid;
+}
+.error {
+	box-shadow: 0 0 0 1px red;
+}
