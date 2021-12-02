@@ -27,7 +27,9 @@ export default function Cell({ cell: { cellId, columnId, defaultValue } }) {
 		setView('ref');
 	};
 
-	const submitValue = (value) => {
+	const submitValue = (e) => {
+		const value = e.target.value;
+		e.stopPropagation();
 		setLocalValue(value);
 		updateCellValue(cellId, value);
 		handleOnBlur();
@@ -64,10 +66,11 @@ export default function Cell({ cell: { cellId, columnId, defaultValue } }) {
 					defaultValue={localValue}
 					onKeyDown={(e) => {
 						if (e.key === 'Enter' || e.key === 'Escape') {
-							submitValue(e.target.value);
+							submitValue(e);
 						}
 					}}
-					onBlur={(e) => submitValue(e.target.value)}
+					onFocus={(e) => e.stopPropagation()}
+					onBlur={(e) => submitValue(e)}
 				/>
 			) : view === 'ref' && refValue === CIRCULAR_REFERENCE_ERROR ? (
 				<Tooltip label={ERROR_MESSAGE}>
@@ -80,44 +83,64 @@ export default function Cell({ cell: { cellId, columnId, defaultValue } }) {
 	);
 }
 
-function subscribe(value = '', unsubscribe, cellId, setRefValue) {
-	if (isValidCellId(value)) {
+function subscribe(value, unsubscribe, cellId, setRefValue) {
+	let refValue = value || '';
+
+	if (value && isValidCellId(value)) {
+		const cellInfo = getCellInfo(dataStore.getState().data, cellId);
+
 		unsubscribe.current = dataStore.subscribe(
-			({ data }) => getCellValue(data, cellId),
+			getCellInfoMemoized(cellInfo, cellId),
 			(newRefValue) => setRefValue(newRefValue)
 		);
-		setRefValue(getCellValue(dataStore.getState().data, cellId));
-	} else {
-		setRefValue(value);
+
+		refValue = cellInfo.value;
 	}
+
+	setRefValue(refValue);
 }
 
-function getCellValue(data, localId) {
-	let stack = [];
+function getCellInfoMemoized(cellInfo, cellId) {
+	let valueCached = cellInfo.value;
+	let cellIdCached = cellInfo.lastCellId;
 
-	try {
-		function getValueFromId(data, id) {
-			const value = data[id] || '';
+	return (store) => {
+		if (store.data[cellIdCached] !== valueCached) {
+			const cellInfo = getCellInfo(store.data, cellId);
 
-			if (value.startsWith('=')) {
-				const newId = value.split('=')[1];
-
-				if (stack.indexOf(newId) === -1) {
-					stack.push(newId);
-
-					return getValueFromId(data, newId);
-				} else {
-					throw new Error(CIRCULAR_REFERENCE_ERROR);
-				}
-			} else {
-				return value;
-			}
+			valueCached = cellInfo.value;
+			cellIdCached = cellInfo.lastCellId;
 		}
 
-		return getValueFromId(data, localId);
-	} catch (error) {
-		return error.message;
+		return valueCached;
+	};
+}
+
+function getCellInfo(data, localId) {
+	let stack = [];
+
+	function getValueFromId(data, id) {
+		const value = data[id] || '';
+
+		if (value.startsWith('=')) {
+			const newId = value.split('=')[1];
+
+			if (stack.indexOf(newId) === -1) {
+				stack.push(newId);
+
+				return getValueFromId(data, newId);
+			} else {
+				return {
+					lastCellId: newId,
+					value: CIRCULAR_REFERENCE_ERROR,
+				};
+			}
+		} else {
+			return { lastCellId: id, value };
+		}
 	}
+
+	return getValueFromId(data, localId);
 }
 
 const isValidCellId = (ref) => /^=[A-Z]?[A-D]?[1-9]?[0-9][0]?$/.test(ref);
